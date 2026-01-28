@@ -12,20 +12,10 @@ from ivr_database import IVRDatabase
 # Load environment variables
 load_dotenv()
 
-def get_config(key: str, default: str = '') -> str:
-    """Get configuration from Streamlit secrets or environment variables"""
-    try:
-        # Try Streamlit secrets first (for cloud deployment)
-        return st.secrets.get(key, default)
-    except (AttributeError, FileNotFoundError):
-        # Fall back to environment variables (for local development)
-        return os.getenv(key, default)
-
-
 # Page configuration
 st.set_page_config(
     page_title="Exotel IVR Dashboard",
-    page_icon="📞",
+    page_icon="ðŸ“ž",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -53,9 +43,9 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Exotel API Configuration
-EXOTEL_API_KEY = get_config('EXOTEL_API_KEY', '')
-EXOTEL_API_TOKEN = get_config('EXOTEL_API_TOKEN', '')
-EXOTEL_SID = get_config('EXOTEL_SID', '')
+EXOTEL_API_KEY = os.getenv('EXOTEL_API_KEY', '')
+EXOTEL_API_TOKEN = os.getenv('EXOTEL_API_TOKEN', '')
+EXOTEL_SID = os.getenv('EXOTEL_SID', '')
 EXOTEL_BASE_URL = f"https://api.exotel.com/v1/Accounts/{EXOTEL_SID}"
 
 class ExotelAPI:
@@ -264,7 +254,7 @@ def get_ivr_label(path: str) -> str:
         hp = {'1': '49 HP', '2': '74 HP'}.get(parts[4], f'HP-{parts[4]}')
         labels.append(hp)
     
-    return ' → '.join(labels)
+    return ' â†’ '.join(labels)
 
 def create_metrics_section(df: pd.DataFrame):
     """Display key metrics"""
@@ -287,7 +277,7 @@ def create_metrics_section(df: pd.DataFrame):
         st.metric("Avg Duration", f"{avg_duration:.0f}s" if pd.notna(avg_duration) else "N/A")
     
     with col4:
-        st.metric("Total Cost", f"₹{total_cost:.2f}")
+        st.metric("Total Cost", f"â‚¹{total_cost:.2f}")
 
 def create_call_status_chart(df: pd.DataFrame):
     """Create call status distribution chart"""
@@ -514,11 +504,11 @@ def create_ivr_completion_rate(df: pd.DataFrame):
 
 def main():
     # Header
-    st.markdown('<h1 class="main-header">📞 Exotel IVR Dashboard</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">ðŸ“ž Exotel IVR Dashboard</h1>', unsafe_allow_html=True)
     
     # Sidebar
     with st.sidebar:
-        st.header("⚙️ Settings")
+        st.header("âš™ï¸ Settings")
         
         # Date range selector
         date_range = st.date_input(
@@ -532,7 +522,7 @@ def main():
                                     help="Enable to fetch real data from Exotel API")
         
         # Refresh button
-        if st.button("🔄 Refresh Data", use_container_width=True):
+        if st.button("ðŸ”„ Refresh Data", use_container_width=True):
             st.cache_data.clear()
             st.rerun()
         
@@ -541,20 +531,20 @@ def main():
         # API Status
         st.subheader("API Configuration")
         if EXOTEL_API_KEY and EXOTEL_API_TOKEN and EXOTEL_SID:
-            st.success("✅ Exotel API Configured")
+            st.success("âœ… Exotel API Configured")
         else:
-            st.warning("⚠️ Configure API credentials in .env file")
+            st.warning("âš ï¸ Configure API credentials in .env file")
         
         # IVR Database Status
         try:
             ivr_db = IVRDatabase()
             ivr_paths = ivr_db.get_ivr_paths()
             if not ivr_paths.empty:
-                st.success(f"✅ IVR Database: {len(ivr_paths)} records")
+                st.success(f"âœ… IVR Database: {len(ivr_paths)} records")
             else:
-                st.info("📊 IVR Database: No data yet")
+                st.info("ðŸ“Š IVR Database: No data yet")
         except Exception as e:
-            st.info("📊 IVR Database: Not initialized")
+            st.info("ðŸ“Š IVR Database: Not initialized")
     
     # Load data
     if use_live_data and EXOTEL_API_KEY and EXOTEL_API_TOKEN and EXOTEL_SID:
@@ -578,9 +568,9 @@ def main():
                 try:
                     ivr_db = IVRDatabase()
                     df = ivr_db.merge_with_call_data(df)
-                    st.success("✅ IVR data merged from local database")
+                    st.success("âœ… IVR data merged from local database")
                 except Exception as e:
-                    st.info(f"ℹ️ Using API data only (no IVR database data)")
+                    st.info(f"â„¹ï¸ Using API data only (no IVR database data)")
                     # Ensure IVR columns exist
                     if 'IVRPath' not in df.columns:
                         df['IVRPath'] = None
@@ -595,24 +585,24 @@ def main():
         df = df[mask].copy()
     
     # Metrics Section
-    st.header("📊 Key Metrics")
+    st.header("ðŸ“Š Key Metrics")
     create_metrics_section(df)
     
     st.divider()
     
     # Tabs for different views
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["📈 Analytics", "📋 Call Logs", "🔥 Heatmap", "💰 Cost Analysis", "🔀 IVR Flow", "📄 Raw Data"])
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["ðŸ“ˆ Analytics", "ðŸ“‹ Call Logs", "ðŸ”¥ Heatmap", "ðŸ’° Cost Analysis", "ðŸ”€ IVR Flow", "ðŸ“„ Raw Data"])
     
     with tab1:
         col1, col2 = st.columns(2)
         
         with col1:
-            st.plotly_chart(create_call_status_chart(df), width='stretch')
+            st.plotly_chart(create_call_status_chart(df), use_container_width=True)
         
         with col2:
-            st.plotly_chart(create_duration_distribution(df), width='stretch')
+            st.plotly_chart(create_duration_distribution(df), use_container_width=True)
         
-        st.plotly_chart(create_call_volume_chart(df), width='stretch')
+        st.plotly_chart(create_call_volume_chart(df), use_container_width=True)
     
     with tab2:
         st.subheader("Recent Call Logs")
@@ -652,32 +642,32 @@ def main():
         # Display table
         st.dataframe(
             filtered_df[['DateCreated', 'From', 'To', 'Status', 'Duration', 'Direction', 'Price']].sort_values('DateCreated', ascending=False),
-            width='stretch',
+            use_container_width=True,
             hide_index=True
         )
         
         # Download button
         csv = filtered_df.to_csv(index=False)
         st.download_button(
-            label="📥 Download Call Logs",
+            label="ðŸ“¥ Download Call Logs",
             data=csv,
             file_name=f"call_logs_{datetime.now().strftime('%Y%m%d')}.csv",
             mime="text/csv"
         )
     
     with tab3:
-        st.plotly_chart(create_hourly_heatmap(df), width='stretch')
+        st.plotly_chart(create_hourly_heatmap(df), use_container_width=True)
         
         # Additional insights
         col1, col2 = st.columns(2)
         
         with col1:
             peak_hour = df.groupby(pd.to_datetime(df['DateCreated']).dt.hour).size().idxmax()
-            st.info(f"🕐 Peak Hour: {peak_hour}:00 - {peak_hour+1}:00")
+            st.info(f"ðŸ• Peak Hour: {peak_hour}:00 - {peak_hour+1}:00")
         
         with col2:
             peak_day = df.groupby(pd.to_datetime(df['DateCreated']).dt.day_name()).size().idxmax()
-            st.info(f"📅 Busiest Day: {peak_day}")
+            st.info(f"ðŸ“… Busiest Day: {peak_day}")
     
     with tab4:
         st.subheader("Cost Analysis")
@@ -690,13 +680,13 @@ def main():
         cost_per_completed = df[df['Status'] == 'completed']['Price'].sum()
         
         with col1:
-            st.metric("Total Cost", f"₹{total_cost:.2f}")
+            st.metric("Total Cost", f"â‚¹{total_cost:.2f}")
         
         with col2:
-            st.metric("Avg Cost/Call", f"₹{avg_cost:.2f}")
+            st.metric("Avg Cost/Call", f"â‚¹{avg_cost:.2f}")
         
         with col3:
-            st.metric("Cost (Completed)", f"₹{cost_per_completed:.2f}")
+            st.metric("Cost (Completed)", f"â‚¹{cost_per_completed:.2f}")
         
         # Daily cost chart
         df['Date'] = pd.to_datetime(df['DateCreated']).dt.date
@@ -707,18 +697,18 @@ def main():
             x='Date',
             y='Price',
             title="Daily Cost Breakdown",
-            labels={'Price': 'Cost (₹)'}
+            labels={'Price': 'Cost (â‚¹)'}
         )
         
         fig.update_layout(height=400)
-        st.plotly_chart(fig, width='stretch')
+        st.plotly_chart(fig, use_container_width=True)
     
     with tab5:
         st.subheader("IVR Flow Analysis")
         
         # Check if IVR data is available
         if 'IVRPath' not in df.columns or df['IVRPath'].isna().all():
-            st.info("📌 **IVR data is not available in the current dataset.**\n\n"
+            st.info("ðŸ“Œ **IVR data is not available in the current dataset.**\n\n"
                    "This feature works with sample data or when IVR tracking is configured in your Exotel flow. "
                    "Disable 'Use Live Exotel Data' in the sidebar to see sample IVR analysis.")
         else:
@@ -750,18 +740,18 @@ def main():
             col1, col2 = st.columns(2)
             
             with col1:
-                st.plotly_chart(create_ivr_first_option_pie(df), width='stretch')
+                st.plotly_chart(create_ivr_first_option_pie(df), use_container_width=True)
             
             with col2:
-                st.plotly_chart(create_ivr_funnel(df), width='stretch')
+                st.plotly_chart(create_ivr_funnel(df), use_container_width=True)
             
             col1, col2 = st.columns(2)
             
             with col1:
-                st.plotly_chart(create_ivr_flow_chart(df), width='stretch')
+                st.plotly_chart(create_ivr_flow_chart(df), use_container_width=True)
             
             with col2:
-                st.plotly_chart(create_ivr_completion_rate(df), width='stretch')
+                st.plotly_chart(create_ivr_completion_rate(df), use_container_width=True)
             
             # IVR Path Details Table
             st.subheader("Detailed IVR Path Analysis")
@@ -782,22 +772,22 @@ def main():
                 path_analysis = path_analysis[['Path Label', 'IVR Path', 'Total Calls', 'Avg Duration (s)', 'Completed Calls', 'Completion %']]
                 path_analysis = path_analysis.sort_values('Total Calls', ascending=False)
                 
-                st.dataframe(path_analysis, width='stretch', hide_index=True)
+                st.dataframe(path_analysis, use_container_width=True, hide_index=True)
                 
                 # Raw IVR Data Section
                 st.divider()
-                st.subheader("📋 Raw IVR Selection Data")
+                st.subheader("ðŸ“‹ Raw IVR Selection Data")
                 
                 # Create detailed view with individual call IVR selections
                 raw_ivr_display = ivr_data[['CallSid', 'DateCreated', 'From', 'IVRPath', 'IVRSelections', 'Duration', 'Status']].copy()
                 raw_ivr_display['Path Description'] = raw_ivr_display['IVRPath'].apply(get_ivr_label)
-                raw_ivr_display['Selections'] = raw_ivr_display['IVRSelections'].apply(lambda x: ' → '.join(x) if x else '')
+                raw_ivr_display['Selections'] = raw_ivr_display['IVRSelections'].apply(lambda x: ' â†’ '.join(x) if x else '')
                 
                 # Reorder for display
                 raw_ivr_display = raw_ivr_display[['CallSid', 'DateCreated', 'From', 'Path Description', 'Selections', 'Duration', 'Status']]
                 raw_ivr_display = raw_ivr_display.sort_values('DateCreated', ascending=False)
                 
-                st.dataframe(raw_ivr_display, width='stretch', hide_index=True)
+                st.dataframe(raw_ivr_display, use_container_width=True, hide_index=True)
                 
                 # Download buttons
                 col1, col2 = st.columns(2)
@@ -805,7 +795,7 @@ def main():
                 with col1:
                     csv_analysis = path_analysis.to_csv(index=False)
                     st.download_button(
-                        label="📥 Download IVR Analysis",
+                        label="ðŸ“¥ Download IVR Analysis",
                         data=csv_analysis,
                         file_name=f"ivr_analysis_{datetime.now().strftime('%Y%m%d')}.csv",
                         mime="text/csv"
@@ -814,7 +804,7 @@ def main():
                 with col2:
                     csv_raw = raw_ivr_display.to_csv(index=False)
                     st.download_button(
-                        label="📥 Download Raw IVR Data",
+                        label="ðŸ“¥ Download Raw IVR Data",
                         data=csv_raw,
                         file_name=f"raw_ivr_data_{datetime.now().strftime('%Y%m%d')}.csv",
                         mime="text/csv"
@@ -823,21 +813,21 @@ def main():
                 st.info("No IVR interaction data available.")
     
     with tab6:
-        st.subheader("📄 Raw API Data")
+        st.subheader("ðŸ“„ Raw API Data")
         
         # Important note about IVR data
-        st.warning("⚠️ **Important: IVR Digit Inputs Not Available in Standard API**\n\n"
+        st.warning("âš ï¸ **Important: IVR Digit Inputs Not Available in Standard API**\n\n"
                   "The Exotel Calls API (`/Calls.json`) does **not** return IVR digit inputs (button presses). "
                   "To capture what digits users pressed during IVR:\n\n"
                   "1. Add a **Passthru applet** after each Gather/IVR applet in your Exotel flow\n"
                   "2. Configure the Passthru to send data to your webhook URL\n"
                   "3. The `digits` parameter will contain the user's input\n"
                   "4. Store this data in your database and link it to the CallSid\n\n"
-                  "📚 [Learn more about Passthru applet](https://support.exotel.com/support/solutions/articles/48283-working-with-passthru-applet)")
+                  "ðŸ“š [Learn more about Passthru applet](https://support.exotel.com/support/solutions/articles/48283-working-with-passthru-applet)")
         
         # Display data source
         if use_live_data and EXOTEL_API_KEY and EXOTEL_API_TOKEN and EXOTEL_SID:
-            st.info("📡 Showing **Live Data** from Exotel API")
+            st.info("ðŸ“¡ Showing **Live Data** from Exotel API")
             
             # Show API endpoint being used
             st.code(f"GET https://api.exotel.com/v1/Accounts/{EXOTEL_SID}/Calls.json", language="bash")
@@ -847,17 +837,17 @@ def main():
                    "**Missing Fields:** IVR digit inputs (requires Passthru applet setup)")
             
             # Setup guide
-            with st.expander("📖 How to Capture IVR Inputs - Setup Guide"):
+            with st.expander("ðŸ“– How to Capture IVR Inputs - Setup Guide"):
                 st.markdown("""
                 ### Step-by-Step Guide to Capture IVR Digit Inputs
                 
                 **Current Situation:**
-                - ❌ The `/Calls.json` API does NOT return IVR digits
-                - ✅ IVR digits are available through Passthru applet callbacks
+                - âŒ The `/Calls.json` API does NOT return IVR digits
+                - âœ… IVR digits are available through Passthru applet callbacks
                 
                 **Solution: Set up Passthru Applets**
                 
-                1. **Go to Exotel Dashboard** → [Flows/Applets](https://my.exotel.com/apps)
+                1. **Go to Exotel Dashboard** â†’ [Flows/Applets](https://my.exotel.com/apps)
                 
                 2. **Edit your IVR Flow:**
                    - After each **Gather** or **IVR Menu** applet
@@ -900,7 +890,7 @@ def main():
             # Option to fetch fresh data
             col1, col2, col3 = st.columns([1, 1, 2])
             with col1:
-                if st.button("🔄 Fetch Fresh Data", use_container_width=True):
+                if st.button("ðŸ”„ Fetch Fresh Data", use_container_width=True):
                     st.cache_data.clear()
                     st.rerun()
             
@@ -908,17 +898,17 @@ def main():
                 test_call_sid = st.text_input("Test Single Call Details", placeholder="Enter CallSid")
             
             with col3:
-                if test_call_sid and st.button("📞 Get Call Details"):
+                if test_call_sid and st.button("ðŸ“ž Get Call Details"):
                     with st.spinner("Fetching call details..."):
                         api = ExotelAPI(EXOTEL_API_KEY, EXOTEL_API_TOKEN, EXOTEL_SID)
                         call_details = api.get_call_details(test_call_sid)
                         if call_details:
                             st.json(call_details)
-                            st.caption("💡 **Note:** The 'digits' field will only appear if you have a Passthru applet configured in your flow")
+                            st.caption("ðŸ’¡ **Note:** The 'digits' field will only appear if you have a Passthru applet configured in your flow")
                         else:
                             st.error("Failed to fetch call details")
         else:
-            st.info("🎲 Showing **Sample Data** for demonstration\n\n"
+            st.info("ðŸŽ² Showing **Sample Data** for demonstration\n\n"
                    "Sample data includes simulated IVR selections. In production, you need to set up Passthru applets to capture real IVR inputs.")
         
         # Display total records
@@ -928,7 +918,7 @@ def main():
         
         # Sample JSON Response (if available)
         if use_live_data and len(df) > 0:
-            with st.expander("📋 View Sample API Response (First Record)"):
+            with st.expander("ðŸ“‹ View Sample API Response (First Record)"):
                 sample_record = df.iloc[0].to_dict()
                 # Convert timestamps to strings for JSON display
                 for key, value in sample_record.items():
@@ -945,7 +935,7 @@ def main():
         # Display full dataframe
         st.dataframe(
             df.sort_values('DateCreated', ascending=False),
-            width='stretch',
+            use_container_width=True,
             hide_index=True,
             height=600
         )
@@ -955,7 +945,7 @@ def main():
         with col1:
             csv_data = df.to_csv(index=False)
             st.download_button(
-                label="📥 Download Raw Data (CSV)",
+                label="ðŸ“¥ Download Raw Data (CSV)",
                 data=csv_data,
                 file_name=f"raw_api_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
                 mime="text/csv",
@@ -972,7 +962,7 @@ def main():
             st.write("**Numeric Columns Summary:**")
             numeric_cols = df.select_dtypes(include=['int64', 'float64']).columns.tolist()
             if numeric_cols:
-                st.dataframe(df[numeric_cols].describe(), width='stretch')
+                st.dataframe(df[numeric_cols].describe(), use_container_width=True)
             else:
                 st.info("No numeric columns available")
         
@@ -984,7 +974,7 @@ def main():
                 'Non-Null Count': df.count(),
                 'Null Count': df.isnull().sum()
             })
-            st.dataframe(dtypes_df, width='stretch', hide_index=True)
+            st.dataframe(dtypes_df, use_container_width=True, hide_index=True)
 
 if __name__ == "__main__":
     main()
